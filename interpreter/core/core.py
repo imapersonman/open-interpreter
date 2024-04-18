@@ -2,6 +2,7 @@
 This file defines the Interpreter class.
 It's the main file. `from interpreter import interpreter` will import an instance of this class.
 """
+from dataclasses import dataclass, field
 import json
 import os
 import threading
@@ -21,6 +22,7 @@ from .utils.telemetry import send_telemetry
 from .utils.truncate_output import truncate_output
 
 
+@dataclass
 class OpenInterpreter:
     """
     This class (one instance is called an `interpreter`) is the "grand central station" of this project.
@@ -39,89 +41,66 @@ class OpenInterpreter:
     6. Decide when the process is finished based on the language model's response.
     """
 
-    def __init__(
-        self,
-        messages=None,
-        offline=False,
-        auto_run=False,
-        verbose=False,
-        debug=False,
-        max_output=2800,
-        safe_mode="off",
-        shrink_images=False,
-        force_task_completion=False,
-        force_task_completion_message="""Proceed. You CAN run code on my machine. If you want to run code, start your message with "```"! If the entire task I asked for is done, say exactly 'The task is done.' If you need some specific information (like username or password) say EXACTLY 'Please provide more information.' If it's impossible, say 'The task is impossible.' (If I haven't provided a task, say exactly 'Let me know what you'd like to do next.') Otherwise keep going.""",
-        force_task_completion_breakers=[
-            "the task is done.",
-            "the task is impossible.",
-            "let me know what you'd like to do next.",
-            "please provide more information.",
-        ],
-        disable_telemetry=os.getenv("DISABLE_TELEMETRY", "false").lower() == "true",
-        in_terminal_interface=False,
-        conversation_history=True,
-        conversation_filename=None,
-        conversation_history_path=get_storage_path("conversations"),
-        os=False,
-        speak_messages=False,
-        llm=None,
-        system_message=default_system_message,
-        custom_instructions="",
-        computer=None,
-        sync_computer=False,
-        import_computer_api=False,
-        skills_path=None,
-        import_skills=False,
-        multi_line=False,
-    ):
-        # State
-        self.messages = [] if messages is None else messages
-        self.responding = False
-        self.last_messages_count = 0
+    messages = []
+    responding: bool = field(default=False, init=False)
+    last_messages_count: int = field(default=0, init=False)
 
-        # Settings
-        self.offline = offline
-        self.auto_run = auto_run
-        self.verbose = verbose
-        self.debug = debug
-        self.max_output = max_output
-        self.safe_mode = safe_mode
-        self.shrink_images = shrink_images
-        self.disable_telemetry = disable_telemetry
-        self.in_terminal_interface = in_terminal_interface
-        self.multi_line = multi_line
+    # Settings
+    offline = False
+    auto_run = False
+    verbose = False
+    debug = False
+    max_output = 2800
+    safe_mode = "off"
+    shrink_images = False
+    disable_telemetry = os.getenv("DISABLE_TELEMETRY", "false").lower() == "true"
+    in_terminal_interface = False
+    multi_line = False
 
-        # Loop messages
-        self.force_task_completion = force_task_completion
-        self.force_task_completion_message = force_task_completion_message
-        self.force_task_completion_breakers = force_task_completion_breakers
+    # Loop messages
+    force_task_completion = False
+    force_task_completion_message = """Proceed. You CAN run code on my machine. If you want to run code, start your message with "```"! If the entire task I asked for is done, say exactly 'The task is done.' If you need some specific information (like username or password) say EXACTLY 'Please provide more information.' If it's impossible, say 'The task is impossible.' (If I haven't provided a task, say exactly 'Let me know what you'd like to do next.') Otherwise keep going."""
+    force_task_completion_breakers = [
+        "the task is done.",
+        "the task is impossible.",
+        "let me know what you'd like to do next.",
+        "please provide more information.",
+    ]
 
-        # Conversation history
-        self.conversation_history = conversation_history
-        self.conversation_filename = conversation_filename
-        self.conversation_history_path = conversation_history_path
+    # Conversation history
+    conversation_history = True
+    conversation_filename = None
+    conversation_history_path = get_storage_path("conversations")
 
-        # OS control mode related attributes
-        self.os = os
-        self.speak_messages = speak_messages
+    # OS control mode related attributes
+    os = False
+    speak_messages = False
 
-        # LLM
-        self.llm = Llm(self) if llm is None else llm
+    # LLM
+    llm = None
 
-        # These are LLM related
-        self.system_message = system_message
-        self.custom_instructions = custom_instructions
+    # These are LLM related
+    system_message = default_system_message
+    custom_instructions = ""
 
-        # Computer
-        self.computer = Computer(self) if computer is None else computer
-        self.sync_computer = sync_computer
-        self.computer.import_computer_api = import_computer_api
+    # Computer
+    computer = None
+    sync_computer = False
+    import_computer_api = False
+    skills_path = None
+    import_skills = False
+
+    def __post_init__(self):
+        self.llm = Llm(self) if self.llm is None else self.llm
+        self.computer = Computer(self) if self.computer is None else self.computer
+
+        self.computer.import_computer_api = self.import_computer_api
 
         # Skills
-        if skills_path:
-            self.computer.skills.path = skills_path
+        if self.skills_path:
+            self.computer.skills.path = self.skills_path
 
-        self.computer.import_skills = import_skills
+        self.computer.import_skills = self.import_skills
 
     def server(self, *args, **kwargs):
         server(self, *args, **kwargs)
