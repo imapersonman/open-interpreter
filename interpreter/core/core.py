@@ -8,6 +8,7 @@ import os
 import threading
 import time
 from datetime import datetime
+from typing import List, Literal, Optional
 
 from ..terminal_interface.terminal_interface import terminal_interface
 from ..terminal_interface.utils.display_markdown_message import display_markdown_message
@@ -41,54 +42,57 @@ class OpenInterpreter:
     6. Decide when the process is finished based on the language model's response.
     """
 
-    messages = []
-    responding: bool = field(default=False, init=False)
-    last_messages_count: int = field(default=0, init=False)
+    # The following means that messages is a field storing a list, and the default value of messages
+    # is the empty list.
+    messages: List = field(default_factory=list)
 
     # Settings
-    offline = False
-    auto_run = False
-    verbose = False
-    debug = False
-    max_output = 2800
-    safe_mode = "off"
-    shrink_images = False
-    disable_telemetry = os.getenv("DISABLE_TELEMETRY", "false").lower() == "true"
-    in_terminal_interface = False
-    multi_line = False
+    offline: bool = False
+    auto_run: bool= False
+    verbose: bool = False
+    debug: bool = False
+    max_output: int = 2800
+    # safe_mode can be "off", "ask", or "auto".
+    safe_mode: str  = "off"
+    shrink_images: bool = False
+    disable_telemetry: bool = os.getenv("DISABLE_TELEMETRY", "false").lower() == "true"
+    in_terminal_interface: bool = False
+    multi_line: bool = False
 
     # Loop messages
-    force_task_completion = False
-    force_task_completion_message = """Proceed. You CAN run code on my machine. If you want to run code, start your message with "```"! If the entire task I asked for is done, say exactly 'The task is done.' If you need some specific information (like username or password) say EXACTLY 'Please provide more information.' If it's impossible, say 'The task is impossible.' (If I haven't provided a task, say exactly 'Let me know what you'd like to do next.') Otherwise keep going."""
-    force_task_completion_breakers = [
+    force_task_completion: bool = False
+    force_task_completion_message: str = """Proceed. You CAN run code on my machine. If you want to run code, start your message with "```"! If the entire task I asked for is done, say exactly 'The task is done.' If you need some specific information (like username or password) say EXACTLY 'Please provide more information.' If it's impossible, say 'The task is impossible.' (If I haven't provided a task, say exactly 'Let me know what you'd like to do next.') Otherwise keep going."""
+    # The following line means that force_task_completion_breakers is a list of strings, and its
+    # default value is a list containing 4 strings.
+    force_task_completion_breakers: List[str] = field(default_factory=lambda: [
         "the task is done.",
         "the task is impossible.",
         "let me know what you'd like to do next.",
         "please provide more information.",
-    ]
+    ])
 
     # Conversation history
-    conversation_history = True
-    conversation_filename = None
-    conversation_history_path = get_storage_path("conversations")
+    conversation_history: bool = True
+    conversation_filename: Optional[str] = None
+    conversation_history_path: str = get_storage_path("conversations")
 
     # OS control mode related attributes
-    os = False
-    speak_messages = False
+    os: bool = False
+    speak_messages: bool = False
 
     # LLM
-    llm = None
+    llm: Optional[Llm] = None
 
     # These are LLM related
-    system_message = default_system_message
-    custom_instructions = ""
+    system_message: str = default_system_message
+    custom_instructions: str = ""
 
     # Computer
-    computer = None
-    sync_computer = False
-    import_computer_api = False
-    skills_path = None
-    import_skills = False
+    computer: Optional[Computer] = None
+    sync_computer: bool = False
+    import_computer_api: bool = False
+    skills_path: Optional[str] = None
+    import_skills: bool = False
 
     def __post_init__(self):
         self.llm = Llm(self) if self.llm is None else self.llm
@@ -101,6 +105,9 @@ class OpenInterpreter:
             self.computer.skills.path = self.skills_path
 
         self.computer.import_skills = self.import_skills
+
+        self.responding = False
+        self.last_messages_count = 0
 
     def server(self, *args, **kwargs):
         server(self, *args, **kwargs)
