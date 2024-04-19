@@ -2,11 +2,11 @@
 This file defines the Interpreter class.
 It's the main file. `from interpreter import interpreter` will import an instance of this class.
 """
-from dataclasses import dataclass, field
 import json
 import os
 import threading
 import time
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Literal, Optional
 
@@ -48,12 +48,12 @@ class OpenInterpreter:
 
     # Settings
     offline: bool = False
-    auto_run: bool= False
+    auto_run: bool = False
     verbose: bool = False
     debug: bool = False
     max_output: int = 2800
     # safe_mode can be "off", "ask", or "auto".
-    safe_mode: str  = "off"
+    safe_mode: str = "off"
     shrink_images: bool = False
     disable_telemetry: bool = os.getenv("DISABLE_TELEMETRY", "false").lower() == "true"
     in_terminal_interface: bool = False
@@ -64,12 +64,14 @@ class OpenInterpreter:
     force_task_completion_message: str = """Proceed. You CAN run code on my machine. If you want to run code, start your message with "```"! If the entire task I asked for is done, say exactly 'The task is done.' If you need some specific information (like username or password) say EXACTLY 'Please provide more information.' If it's impossible, say 'The task is impossible.' (If I haven't provided a task, say exactly 'Let me know what you'd like to do next.') Otherwise keep going."""
     # The following line means that force_task_completion_breakers is a list of strings, and its
     # default value is a list containing 4 strings.
-    force_task_completion_breakers: List[str] = field(default_factory=lambda: [
-        "the task is done.",
-        "the task is impossible.",
-        "let me know what you'd like to do next.",
-        "please provide more information.",
-    ])
+    force_task_completion_breakers: List[str] = field(
+        default_factory=lambda: [
+            "the task is done.",
+            "the task is impossible.",
+            "let me know what you'd like to do next.",
+            "please provide more information.",
+        ]
+    )
 
     # Conversation history
     conversation_history: bool = True
@@ -224,7 +226,9 @@ class OpenInterpreter:
                 # If it's the first message, set the conversation name
                 if not self.conversation_filename:
                     first_few_words_list = self.messages[0]["content"][:25].split(" ")
-                    if len(first_few_words_list) >= 2:  # for languages like English with blank between words
+                    if (
+                        len(first_few_words_list) >= 2
+                    ):  # for languages like English with blank between words
                         first_few_words = "_".join(first_few_words_list[:-1])
                     else:  # for languages like Chinese without blank between words
                         first_few_words = self.messages[0]["content"][:15]

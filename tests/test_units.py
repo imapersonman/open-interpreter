@@ -1,8 +1,8 @@
+import pytest
+
 from interpreter.core.computer.computer import Computer
 from interpreter.core.core import OpenInterpreter
 from interpreter.core.llm.llm import Llm
-
-import pytest
 
 
 @pytest.mark.unit
@@ -14,6 +14,7 @@ def test_default_constructor_no_smoke():
     """
     OpenInterpreter()
 
+
 @pytest.mark.unit
 def test_non_default_constructor_no_smoke():
     """
@@ -22,8 +23,12 @@ def test_non_default_constructor_no_smoke():
     """
     OpenInterpreter(
         messages=[
-            {"role": "user", "type": "message", "content": "why was I put on this earth?"},
-            {"role": "assistant", "type": "message", "content": "im a computer chill"}
+            {
+                "role": "user",
+                "type": "message",
+                "content": "why was I put on this earth?",
+            },
+            {"role": "assistant", "type": "message", "content": "im a computer chill"},
         ],
         offline=True,
         auto_run=True,
@@ -50,8 +55,9 @@ def test_non_default_constructor_no_smoke():
         sync_computer=True,
         import_computer_api=True,
         skills_path=None,  # still the default value but its fine.
-        import_skills=True
+        import_skills=True,
     )
+
 
 @pytest.mark.unit
 def test_constructor_syncs_computer_settings():
@@ -62,15 +68,20 @@ def test_constructor_syncs_computer_settings():
 
     QUESTION: should these settings really be duplicated?
     """
-    i1 = OpenInterpreter(import_computer_api=True, skills_path="fake/path", import_skills=True)
+    i1 = OpenInterpreter(
+        import_computer_api=True, skills_path="fake/path", import_skills=True
+    )
     assert i1.import_computer_api == i1.computer.import_computer_api
     assert i1.skills_path == i1.computer.skills.path
     assert i1.import_skills == i1.computer.import_skills
 
-    i2 = OpenInterpreter(import_computer_api=False, skills_path="something/else", import_skills=False)
+    i2 = OpenInterpreter(
+        import_computer_api=False, skills_path="something/else", import_skills=False
+    )
     assert i2.import_computer_api == i2.computer.import_computer_api
     assert i2.skills_path == i2.computer.skills.path
     assert i2.import_skills == i2.computer.import_skills
+
 
 @pytest.mark.unit
 def test_computer_and_llm_none_to_constructed():
@@ -81,5 +92,3 @@ def test_computer_and_llm_none_to_constructed():
     i = OpenInterpreter(computer=None, llm=None)
     assert isinstance(i.computer, Computer)
     assert isinstance(i.llm, Llm)
-
-
