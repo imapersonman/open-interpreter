@@ -8,7 +8,7 @@ import threading
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Literal, Optional
+from typing import List, Optional
 
 from interpreter.core.llm.base import BaseLlm
 
