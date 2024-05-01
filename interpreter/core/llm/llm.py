@@ -1,6 +1,8 @@
 import litellm
 import tokentrim as tt
 
+from interpreter.core.llm.base import BaseLlm
+
 from ...terminal_interface.utils.display_markdown_message import (
     display_markdown_message,
 )
@@ -12,7 +14,7 @@ litellm.suppress_debug_info = True
 import time
 
 
-class Llm:
+class Llm(BaseLlm):
     """
     A stateless LMC-style LLM with some helpful properties.
     """

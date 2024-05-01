@@ -10,6 +10,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Literal, Optional
 
+from interpreter.core.llm.base import BaseLlm
+
 from ..terminal_interface.terminal_interface import terminal_interface
 from ..terminal_interface.utils.display_markdown_message import display_markdown_message
 from ..terminal_interface.utils.local_storage_path import get_storage_path
@@ -83,7 +85,7 @@ class OpenInterpreter:
     speak_messages: bool = False
 
     # LLM
-    llm: Optional[Llm] = None
+    llm: Optional[BaseLlm] = None
 
     # These are LLM related
     system_message: str = default_system_message
