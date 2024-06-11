@@ -142,11 +142,7 @@ class OpenInterpreter:
         self.code_output_sender = code_output_sender
 
     def server(self, *args, **kwargs):
-        try:
-            server(self, *args, **kwargs)
-        except:
-            display_markdown_message("DO SOMETHING `pip install open-interpreter[server]` and try again.")
-            raise
+        server(self, *args, **kwargs)
 
     def local_setup(self):
         """
