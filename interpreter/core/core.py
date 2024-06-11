@@ -146,6 +146,7 @@ class OpenInterpreter:
             server(self, *args, **kwargs)
         except:
             display_markdown_message("Missing dependencies for the server, please run `pip install open-interpreter[server]` and try again.")
+            raise
 
     def local_setup(self):
         """
