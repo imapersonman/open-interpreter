@@ -222,7 +222,9 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
             async def receive_input():
                 print("receiving input!")
                 while True:
+                    print("about to wait for websocket input...")
                     data = await websocket.receive()
+                    print("got websocket input!!")
                     print(data)
                     if isinstance(data, bytes):
                         await async_interpreter.input(data)
@@ -235,7 +237,9 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
             async def send_output():
                 print("sending output!")
                 while True:
+                    print("about to wait for output...")
                     output = await async_interpreter.output()
+                    print("got output!")
                     if isinstance(output, bytes):
                         # await websocket.send_bytes(output)
                         # we dont send out bytes rn, no TTS
