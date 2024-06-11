@@ -13,7 +13,6 @@ import asyncio
 import json
 
 ###
-from pynput import keyboard
 # from RealtimeTTS import TextToAudioStream, OpenAIEngine, CoquiEngine
 # from RealtimeSTT import AudioToTextRecorder
 # from beeper import Beeper
