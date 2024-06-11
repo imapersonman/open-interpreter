@@ -191,8 +191,6 @@ class AsyncInterpreter:
 
 
 def server(interpreter, port=8000):  # Default port is 8000 if not specified
-    print("is this running???")
-    raise RuntimeError("raising just to get your attention")
     async_interpreter = AsyncInterpreter(interpreter)
 
     app = FastAPI()
