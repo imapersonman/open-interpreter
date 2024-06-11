@@ -20,11 +20,11 @@ from .respond import respond
 from .utils.telemetry import send_telemetry
 from .utils.truncate_output import truncate_output
 
-try:
-    from .server import server
-except:
-    # Dependencies for server are not generally required
-    pass
+# try:
+from .server import server
+# except:
+#     # Dependencies for server are not generally required
+#     pass
 
 
 class OpenInterpreter:
