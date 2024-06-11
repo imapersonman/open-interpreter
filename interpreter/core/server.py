@@ -226,10 +226,15 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
                     data = await websocket.receive()
                     print("got websocket input!!")
                     print(data)
+                    print("about to wait for websocket input as...", end=" ")
                     if isinstance(data, bytes):
+                        print("bytes...")
                         await async_interpreter.input(data)
+                        print("got as bytes!")
                     elif "text" in data:
+                        print("text...")
                         await async_interpreter.input(data["text"])
+                        print("got as text!")
                     elif data == {"type": "websocket.disconnect", "code": 1000}:
                         print("Websocket disconnected with code 1000.")
                         break
