@@ -220,6 +220,7 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
         try:
 
             async def receive_input():
+                print("receiving input!")
                 while True:
                     data = await websocket.receive()
                     print(data)
@@ -232,6 +233,7 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
                         break
 
             async def send_output():
+                print("sending output!")
                 while True:
                     output = await async_interpreter.output()
                     if isinstance(output, bytes):
@@ -241,6 +243,7 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
                     elif isinstance(output, dict):
                         await websocket.send_text(json.dumps(output))
 
+            print("about to switch off between receiving input and sending output...")
             await asyncio.gather(receive_input(), send_output())
         except Exception as e:
             print(f"WebSocket connection closed with exception: {e}")
@@ -250,6 +253,4 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
 
     config = Config(app, host="0.0.0.0", port=port) 
     interpreter.uvicorn_server = Server(config)
-    print("about to actually run it")
     interpreter.uvicorn_server.run()
-    print("post having run it")
