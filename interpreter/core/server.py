@@ -82,6 +82,7 @@ class AsyncInterpreter:
         """
         Expects a chunk in streaming LMC format.
         """
+        print("in the input function!")
         if isinstance(chunk, bytes):
             # It's probably a chunk of audio
             # self.stt.feed_audio(chunk)
@@ -187,7 +188,6 @@ class AsyncInterpreter:
         # self.tts.play_async(on_audio_chunk=self.on_tts_chunk, muted=True)
 
     async def output(self):
-        print("waiting to return whatever is in the output queue...")
         return await self._output_queue.get()
 
 
@@ -221,31 +221,20 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
         try:
 
             async def receive_input():
-                print("receiving input!")
                 while True:
-                    print("about to wait for websocket input...")
                     data = await websocket.receive()
-                    print("got websocket input!!")
                     print(data)
-                    print("about to wait for websocket input as...", end=" ")
                     if isinstance(data, bytes):
-                        print("bytes...")
                         await async_interpreter.input(data)
-                        print("got as bytes!")
                     elif "text" in data:
-                        print("text...")
                         await async_interpreter.input(data["text"])
-                        print("got as text!")
                     elif data == {"type": "websocket.disconnect", "code": 1000}:
                         print("Websocket disconnected with code 1000.")
                         break
 
             async def send_output():
-                print("sending output!")
                 while True:
-                    print("about to wait for output...")
                     output = await async_interpreter.output()
-                    print("got output!")
                     if isinstance(output, bytes):
                         # await websocket.send_bytes(output)
                         # we dont send out bytes rn, no TTS
@@ -253,7 +242,6 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
                     elif isinstance(output, dict):
                         await websocket.send_text(json.dumps(output))
 
-            print("about to switch off between receiving input and sending output...")
             await asyncio.gather(receive_input(), send_output())
         except Exception as e:
             print(f"WebSocket connection closed with exception: {e}")
