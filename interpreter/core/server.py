@@ -251,4 +251,6 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
 
     config = Config(app, host="0.0.0.0", port=port) 
     interpreter.uvicorn_server = Server(config)
+    print("about to actually run it")
     interpreter.uvicorn_server.run()
+    print("post having run it")
