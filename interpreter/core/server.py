@@ -187,6 +187,7 @@ class AsyncInterpreter:
         # self.tts.play_async(on_audio_chunk=self.on_tts_chunk, muted=True)
 
     async def output(self):
+        print("waiting to return whatever is in the output queue...")
         return await self._output_queue.get()
 
 
