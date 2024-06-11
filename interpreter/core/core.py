@@ -142,6 +142,7 @@ class OpenInterpreter:
         self.code_output_sender = code_output_sender
 
     def server(self, *args, **kwargs):
+        print("RUN THE SERVER PLEASE")
         server(self, *args, **kwargs)
 
     def local_setup(self):
