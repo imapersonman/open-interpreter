@@ -11,7 +11,6 @@
 
 import asyncio
 import json
-import threading
 
 ###
 # from RealtimeTTS import TextToAudioStream, OpenAIEngine, CoquiEngine
@@ -25,7 +24,6 @@ from fastapi import FastAPI, Header, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from uvicorn import Config, Server
-
 
 class Settings(BaseModel):
     auto_run: bool
@@ -77,8 +75,8 @@ class AsyncInterpreter:
     async def clear_input_queue(self):
         await self.clear_queue(self._input_queue)
 
-    # async def clear_output_queue(self):
-    #     await self.clear_queue(self._output_queue)
+    async def clear_output_queue(self):
+        await self.clear_queue(self._output_queue)
 
     async def input(self, chunk):
         """
@@ -100,16 +98,15 @@ class AsyncInterpreter:
                 self._last_lmc_start_flag = time.time()
                 # self.interpreter.computer.terminal.stop() # Stop any code execution... maybe we should make interpreter.stop()?
             elif "end" in chunk:
-                # asyncio.create_task(self.run())
-                await asyncio.create_task(self.run())
+                asyncio.create_task(self.run())
             else:
                 await self._add_to_queue(self._input_queue, chunk)
 
-    # async def add_to_output_queue_sync(self, chunk):
-    #     """
-    #     Synchronous function to add a chunk to the output queue.
-    #     """
-    #     asyncio.create_task(self._add_to_queue(self._output_queue, chunk))
+    def add_to_output_queue_sync(self, chunk):
+        """
+        Synchronous function to add a chunk to the output queue.
+        """
+        asyncio.create_task(self._add_to_queue(self._output_queue, chunk))
 
     async def run(self):
         """
@@ -121,10 +118,10 @@ class AsyncInterpreter:
         # message = self.stt.text()
         # print("THE MESSAGE:", message)
 
-        # input_queue = list(self._input_queue)
-        # message = [i for i in input_queue if i["type"] == "message"][0]["content"]
+        input_queue = list(self._input_queue._queue)
+        message = [i for i in input_queue if i["type"] == "message"][0]["content"]
 
-        async def generate(message):
+        def generate(message):
             last_lmc_start_flag = self._last_lmc_start_flag
             # interpreter.messages = self.active_chat_messages
             # print("🍀🍀🍀🍀GENERATING, using these messages: ", self.interpreter.messages)
@@ -142,20 +139,17 @@ class AsyncInterpreter:
                 # Handle message blocks
                 # if chunk.get("type") == "message":
                 if True:
-                    # await self.add_to_output_queue_sync(
-                    #     chunk.copy()
-                    # )  # To send text, not just audio
-                    print("about to add...")
-                    await self._add_to_queue(self._input_queue, chunk.copy())
-                    print("added!")
+                    self.add_to_output_queue_sync(
+                        chunk.copy()
+                    )  # To send text, not just audio
                     # ^^^^^^^ MUST be a copy, otherwise the first chunk will get modified by OI >>while<< it's in the queue. Insane
-                    # if content:
-                    #     # self.beeper.stop()
+                    if content:
+                        # self.beeper.stop()
 
-                    #     # Experimental: The AI voice sounds better with replacements like these, but it should happen at the TTS layer
-                    #     # content = content.replace(". ", ". ... ").replace(", ", ", ... ").replace("!", "! ... ").replace("?", "? ... ")
+                        # Experimental: The AI voice sounds better with replacements like these, but it should happen at the TTS layer
+                        # content = content.replace(". ", ". ... ").replace(", ", ", ... ").replace("!", "! ... ").replace("?", "? ... ")
 
-                    #     yield content
+                        yield content
 
                 # Handle code blocks
                 elif chunk.get("type") == "code":
@@ -184,16 +178,14 @@ class AsyncInterpreter:
                             )
 
             # Send a completion signal
-            # await self.add_to_output_queue_sync(
-            #     {"role": "server", "type": "completion", "content": "DONE"}
-            # )
-            await self._add_to_queue(self._output_queue, {"role": "server", "type": "completion", "content": "DONE"})
+            self.add_to_output_queue_sync(
+                {"role": "server", "type": "completion", "content": "DONE"}
+            )
 
         # Feed generate to RealtimeTTS
         # self.tts.feed(generate(message))
-        await generate(message)
-        # async for _ in generate(message):
-        #     pass
+        for _ in generate(message):
+            pass
         # self.tts.play_async(on_audio_chunk=self.on_tts_chunk, muted=True)
 
     async def output(self):
@@ -228,6 +220,7 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
     async def websocket_endpoint(websocket: WebSocket):
         await websocket.accept()
         try:
+
             async def receive_input():
                 while True:
                     data = await websocket.receive()
@@ -242,24 +235,13 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
 
             async def send_output():
                 while True:
-                    print("about to grab output...")
                     output = await async_interpreter.output()
-                    print("grabbed output!")
                     if isinstance(output, bytes):
                         # await websocket.send_bytes(output)
                         # we dont send out bytes rn, no TTS
                         pass
                     elif isinstance(output, dict):
                         await websocket.send_text(json.dumps(output))
-
-            # input_th = threading.Thread(target=receive_input)
-            # output_th = threading.Thread(target=receive_input)
-
-            # input_th.start()
-            # output_th.start()
-
-            # input_th.join()
-            # output_th.join()
 
             await asyncio.gather(receive_input(), send_output())
         except Exception as e:
