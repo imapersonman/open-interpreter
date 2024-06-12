@@ -193,13 +193,12 @@ class AsyncInterpreter:
 
 
 async def accumulate_user_message(websocket: WebSocket):
-    def is_done(message):
-        return "end" in message and message["end"] and "content" not in message
-
     ws_message = await websocket.receive_json()
     user_message_content = ""
-    while not is_done(ws_message):
-        user_message_content += ws_message["content"]
+
+    while "end" in ws_message:
+        if "content" in ws_message:
+            user_message_content += ws_message["content"]
         ws_message = await websocket.receive_json()
     
     return {"role": "user", "type": "message", "content": user_message_content}
