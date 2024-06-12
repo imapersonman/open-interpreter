@@ -126,7 +126,7 @@ class AsyncInterpreter:
             # interpreter.messages = self.active_chat_messages
             # print("🍀🍀🍀🍀GENERATING, using these messages: ", self.interpreter.messages)
             print("passing this in:", message)
-            for chunk in self.interpreter.chat(message, display=False, stream=True):
+            for chunk in self.interpreter.chat(message, display=True, stream=True):
 
                 if self._last_lmc_start_flag != last_lmc_start_flag:
                     # self.beeper.stop()
@@ -161,7 +161,7 @@ class AsyncInterpreter:
                         .get("content", "")
                         .startswith("computer.keyboard.write(")
                     ):
-                        keyboard.controller.type(content)
+                        # keyboard.controller.type(content)
                         self._in_keyboard_write_block = True
                     if "end" in chunk and self._in_keyboard_write_block:
                         self._in_keyboard_write_block = False
