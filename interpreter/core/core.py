@@ -142,7 +142,6 @@ class OpenInterpreter:
         self.code_output_sender = code_output_sender
 
     def server(self, *args, **kwargs):
-        print("RUN THE SERVER PLEASE")
         server(self, *args, **kwargs)
 
     def local_setup(self):
@@ -192,6 +191,7 @@ class OpenInterpreter:
                 return
 
             if stream:
+                print("returning streaming!")
                 return self._streaming_chat(message=message, display=display)
 
             # If stream=False, *pull* from the stream.
