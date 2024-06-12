@@ -11,6 +11,7 @@
 
 import asyncio
 import json
+import threading
 
 ###
 # from RealtimeTTS import TextToAudioStream, OpenAIEngine, CoquiEngine
@@ -24,6 +25,7 @@ from fastapi import FastAPI, Header, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from uvicorn import Config, Server
+
 
 class Settings(BaseModel):
     auto_run: bool
@@ -143,13 +145,13 @@ class AsyncInterpreter:
                         chunk.copy()
                     )  # To send text, not just audio
                     # ^^^^^^^ MUST be a copy, otherwise the first chunk will get modified by OI >>while<< it's in the queue. Insane
-                    if content:
-                        # self.beeper.stop()
+                    # if content:
+                    #     # self.beeper.stop()
 
-                        # Experimental: The AI voice sounds better with replacements like these, but it should happen at the TTS layer
-                        # content = content.replace(". ", ". ... ").replace(", ", ", ... ").replace("!", "! ... ").replace("?", "? ... ")
+                    #     # Experimental: The AI voice sounds better with replacements like these, but it should happen at the TTS layer
+                    #     # content = content.replace(". ", ". ... ").replace(", ", ", ... ").replace("!", "! ... ").replace("?", "? ... ")
 
-                        yield content
+                    #     yield content
 
                 # Handle code blocks
                 elif chunk.get("type") == "code":
@@ -184,8 +186,9 @@ class AsyncInterpreter:
 
         # Feed generate to RealtimeTTS
         # self.tts.feed(generate(message))
-        async for _ in generate(message):
-            pass
+        await generate(message)
+        # async for _ in generate(message):
+        #     pass
         # self.tts.play_async(on_audio_chunk=self.on_tts_chunk, muted=True)
 
     async def output(self):
