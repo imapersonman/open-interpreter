@@ -118,7 +118,7 @@ class AsyncInterpreter:
         # message = self.stt.text()
         # print("THE MESSAGE:", message)
 
-        input_queue = list(self._input_queue._queue)
+        input_queue = list(self._input_queue.queue)
         message = [i for i in input_queue if i["type"] == "message"][0]["content"]
 
         def generate(message):
@@ -192,6 +192,19 @@ class AsyncInterpreter:
         return await self._output_queue.get()
 
 
+async def accumulate_user_message(websocket: WebSocket):
+    def is_done(message):
+        return "end" in message and message["end"] and "content" not in message
+
+    ws_message = await websocket.receive_json()
+    user_message_content = ""
+    while not is_done(ws_message):
+        user_message_content += ws_message["content"]
+        ws_message = await websocket.receive_json()
+    
+    return {"role": "user", "type": "message", "content": user_message_content}
+
+
 def server(interpreter, port=8000):  # Default port is 8000 if not specified
     async_interpreter = AsyncInterpreter(interpreter)
 
@@ -218,30 +231,38 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
     
     @app.websocket("/")
     async def websocket_endpoint(websocket: WebSocket):
+        input_queue = asyncio.Queue()
+        output_queue = asyncio.Queue()
+
         await websocket.accept()
         try:
-
             async def receive_input():
                 while True:
-                    data = await websocket.receive()
-                    print(data)
-                    if isinstance(data, bytes):
-                        await async_interpreter.input(data)
-                    elif "text" in data:
-                        await async_interpreter.input(data["text"])
-                    elif data == {"type": "websocket.disconnect", "code": 1000}:
-                        print("Websocket disconnected with code 1000.")
-                        break
-
+                    # data = await websocket.receive()
+                    # print(data)
+                    # if isinstance(data, bytes):
+                    #     await async_interpreter.input(data)
+                    # elif "text" in data:
+                    #     await async_interpreter.input(data["text"])
+                    # elif data == {"type": "websocket.disconnect", "code": 1000}:
+                    #     print("Websocket disconnected with code 1000.")
+                    #     break
+                    user_message = await accumulate_user_message(websocket)
+                    print("incoming user_message: ", user_message)
+                    await input_queue.put(user_message)
             async def send_output():
                 while True:
-                    output = await async_interpreter.output()
-                    if isinstance(output, bytes):
-                        # await websocket.send_bytes(output)
-                        # we dont send out bytes rn, no TTS
-                        pass
-                    elif isinstance(output, dict):
-                        await websocket.send_text(json.dumps(output))
+                    # output = await async_interpreter.output()
+                    # if isinstance(output, bytes):
+                    #     # await websocket.send_bytes(output)
+                    #     # we dont send out bytes rn, no TTS
+                    #     pass
+                    # elif isinstance(output, dict):
+                    #     await websocket.send_text(json.dumps(output))
+                    user_message = await input_queue.get()
+                    print("got input!")
+                    for chunk in interpreter.chat(user_message["content"], display=True, stream=True):
+                        await websocket.send_json(chunk)
 
             await asyncio.gather(receive_input(), send_output())
         except Exception as e:
