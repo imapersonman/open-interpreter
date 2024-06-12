@@ -102,7 +102,7 @@ class AsyncInterpreter:
             else:
                 await self._add_to_queue(self._input_queue, chunk)
 
-    def add_to_output_queue_sync(self, chunk):
+    async def add_to_output_queue_sync(self, chunk):
         """
         Synchronous function to add a chunk to the output queue.
         """
@@ -121,7 +121,7 @@ class AsyncInterpreter:
         input_queue = list(self._input_queue._queue)
         message = [i for i in input_queue if i["type"] == "message"][0]["content"]
 
-        def generate(message):
+        async def generate(message):
             last_lmc_start_flag = self._last_lmc_start_flag
             # interpreter.messages = self.active_chat_messages
             # print("🍀🍀🍀🍀GENERATING, using these messages: ", self.interpreter.messages)
@@ -139,7 +139,7 @@ class AsyncInterpreter:
                 # Handle message blocks
                 # if chunk.get("type") == "message":
                 if True:
-                    self.add_to_output_queue_sync(
+                    await self.add_to_output_queue_sync(
                         chunk.copy()
                     )  # To send text, not just audio
                     # ^^^^^^^ MUST be a copy, otherwise the first chunk will get modified by OI >>while<< it's in the queue. Insane
@@ -178,13 +178,13 @@ class AsyncInterpreter:
                             )
 
             # Send a completion signal
-            self.add_to_output_queue_sync(
+            await self.add_to_output_queue_sync(
                 {"role": "server", "type": "completion", "content": "DONE"}
             )
 
         # Feed generate to RealtimeTTS
         # self.tts.feed(generate(message))
-        for _ in generate(message):
+        async for _ in generate(message):
             pass
         # self.tts.play_async(on_audio_chunk=self.on_tts_chunk, muted=True)
 
@@ -242,6 +242,9 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
                         pass
                     elif isinstance(output, dict):
                         await websocket.send_text(json.dumps(output))
+
+            # input = threading.Thread(target=receive_input)
+            # output = threading.Thread(target=receive_input)
 
             await asyncio.gather(receive_input(), send_output())
         except Exception as e:
