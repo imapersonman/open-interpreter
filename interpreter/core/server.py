@@ -196,7 +196,7 @@ async def accumulate_user_message(websocket: WebSocket):
     ws_message = await websocket.receive_json()
     user_message_content = ""
 
-    while "end" in ws_message:
+    while "end" not in ws_message:
         if "content" in ws_message:
             user_message_content += ws_message["content"]
         ws_message = await websocket.receive_json()
@@ -259,7 +259,7 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
                     # elif isinstance(output, dict):
                     #     await websocket.send_text(json.dumps(output))
                     user_message = await input_queue.get()
-                    print("got input!")
+                    print("got input!", user_message)
                     for chunk in interpreter.chat(user_message["content"], display=True, stream=True):
                         print("chunk: ", chunk)
                         await websocket.send_json(chunk)
