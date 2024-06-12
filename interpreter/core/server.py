@@ -264,6 +264,7 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
                         await websocket.send_json(chunk)
                         await asyncio.sleep(0)
                     print("done with one loop thing!")
+                    await websocket.send_json({"role": "server", "type": "completion", "content": "DONE"})
 
             await asyncio.gather(receive_input(), send_output())
         except Exception as e:
