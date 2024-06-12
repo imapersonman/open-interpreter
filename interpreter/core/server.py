@@ -77,8 +77,8 @@ class AsyncInterpreter:
     async def clear_input_queue(self):
         await self.clear_queue(self._input_queue)
 
-    async def clear_output_queue(self):
-        await self.clear_queue(self._output_queue)
+    # async def clear_output_queue(self):
+    #     await self.clear_queue(self._output_queue)
 
     async def input(self, chunk):
         """
@@ -100,7 +100,8 @@ class AsyncInterpreter:
                 self._last_lmc_start_flag = time.time()
                 # self.interpreter.computer.terminal.stop() # Stop any code execution... maybe we should make interpreter.stop()?
             elif "end" in chunk:
-                asyncio.create_task(self.run())
+                # asyncio.create_task(self.run())
+                await asyncio.create_task(self.run())
             else:
                 await self._add_to_queue(self._input_queue, chunk)
 
@@ -120,8 +121,8 @@ class AsyncInterpreter:
         # message = self.stt.text()
         # print("THE MESSAGE:", message)
 
-        input_queue = list(self._input_queue._queue)
-        message = [i for i in input_queue if i["type"] == "message"][0]["content"]
+        # input_queue = list(self._input_queue)
+        # message = [i for i in input_queue if i["type"] == "message"][0]["content"]
 
         async def generate(message):
             last_lmc_start_flag = self._last_lmc_start_flag
