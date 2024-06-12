@@ -261,6 +261,7 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
                     user_message = await input_queue.get()
                     print("got input!", user_message)
                     for chunk in interpreter.chat(user_message["content"], display=False, stream=True):
+                        print("chunk:", chunk)
                         await websocket.send_json(chunk)
                         await asyncio.sleep(0)
                     print("done with one loop thing!")
