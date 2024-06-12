@@ -144,7 +144,9 @@ class AsyncInterpreter:
                     # await self.add_to_output_queue_sync(
                     #     chunk.copy()
                     # )  # To send text, not just audio
+                    print("about to add...")
                     await self._add_to_queue(self._input_queue, chunk.copy())
+                    print("added!")
                     # ^^^^^^^ MUST be a copy, otherwise the first chunk will get modified by OI >>while<< it's in the queue. Insane
                     # if content:
                     #     # self.beeper.stop()
@@ -181,9 +183,10 @@ class AsyncInterpreter:
                             )
 
             # Send a completion signal
-            await self.add_to_output_queue_sync(
-                {"role": "server", "type": "completion", "content": "DONE"}
-            )
+            # await self.add_to_output_queue_sync(
+            #     {"role": "server", "type": "completion", "content": "DONE"}
+            # )
+            await self._add_to_queue(self._output_queue, {"role": "server", "type": "completion", "content": "DONE"})
 
         # Feed generate to RealtimeTTS
         # self.tts.feed(generate(message))
@@ -238,7 +241,9 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
 
             async def send_output():
                 while True:
+                    print("about to grab output...")
                     output = await async_interpreter.output()
+                    print("grabbed output!")
                     if isinstance(output, bytes):
                         # await websocket.send_bytes(output)
                         # we dont send out bytes rn, no TTS
@@ -248,6 +253,12 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
 
             # input_th = threading.Thread(target=receive_input)
             # output_th = threading.Thread(target=receive_input)
+
+            # input_th.start()
+            # output_th.start()
+
+            # input_th.join()
+            # output_th.join()
 
             await asyncio.gather(receive_input(), send_output())
         except Exception as e:
