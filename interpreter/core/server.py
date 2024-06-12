@@ -243,7 +243,7 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
                     #     await async_interpreter.input(data)
                     # elif "text" in data:
                     #     await async_interpreter.input(data["text"])
-                    # elif data == {"type": "websocket.disconnect", "code": 1000}:
+                    # elif data == {"type": "websocket.disconnect", "code": 1000}
                     #     print("Websocket disconnected with code 1000.")
                     #     break
                     user_message = await accumulate_user_message(websocket)
@@ -260,7 +260,7 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
                     #     await websocket.send_text(json.dumps(output))
                     user_message = await input_queue.get()
                     print("got input!", user_message)
-                    for chunk in interpreter.chat(user_message["content"], display=True, stream=True):
+                    for chunk in interpreter.chat(user_message["content"], display=False, stream=True):
                         await websocket.send_json(chunk)
                         await asyncio.sleep(0)
                     print("done with one loop thing!")
