@@ -168,6 +168,7 @@ class OpenInterpreter:
         return self.contribute_conversation and not overrides
 
     def chat(self, message=None, display=True, stream=False, blocking=True):
+        print("chat!")
         try:
             self.responding = True
             if self.anonymous_telemetry:
