@@ -54,6 +54,7 @@ def send_telemetry(event_name, properties=None):
         # with open(os.devnull, "w") as f, contextlib.redirect_stdout(
         #     f
         # ), contextlib.redirect_stderr(f):
+        print("sending!!!")
         url = "https://app.posthog.com/capture"
         headers = {"Content-Type": "application/json"}
         data = {
