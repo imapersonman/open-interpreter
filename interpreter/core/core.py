@@ -86,8 +86,6 @@ class OpenInterpreter:
         multi_line=False,
         contribute_conversation=False,
     ):
-        print("where is printing???")
-
         # State
         self.messages = [] if messages is None else messages
         self.responding = False
@@ -193,7 +191,6 @@ class OpenInterpreter:
                 return
 
             if stream:
-                print("returning streaming!")
                 return self._streaming_chat(message=message, display=display)
 
             # If stream=False, *pull* from the stream.
