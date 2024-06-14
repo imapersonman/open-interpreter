@@ -86,6 +86,8 @@ class OpenInterpreter:
         multi_line=False,
         contribute_conversation=False,
     ):
+        print("where is printing???")
+
         # State
         self.messages = [] if messages is None else messages
         self.responding = False
@@ -168,7 +170,6 @@ class OpenInterpreter:
         return self.contribute_conversation and not overrides
 
     def chat(self, message=None, display=True, stream=False, blocking=True):
-        print("chat!")
         try:
             self.responding = True
             if self.anonymous_telemetry:
