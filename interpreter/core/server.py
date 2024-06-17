@@ -241,6 +241,7 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
                         pass
                     elif isinstance(output, dict):
                         await websocket.send_text(json.dumps(output))
+                        await asyncio.sleep(0)
 
             await asyncio.gather(receive_input(), send_output())
         except Exception as e:
