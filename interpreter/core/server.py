@@ -135,23 +135,12 @@ class AsyncInterpreter:
                 # self.add_to_output_queue_sync(chunk) # To send text, not just audio
 
                 content = chunk.get("content")
+                chunk_copy = chunk.copy()
+                self.add_to_output_queue_sync(chunk_copy)
+                yield chunk_copy
 
                 # Handle message blocks
-                if chunk.get("type") == "message":
-                    self.add_to_output_queue_sync(
-                        chunk.copy()
-                    )  # To send text, not just audio
-                    # ^^^^^^^ MUST be a copy, otherwise the first chunk will get modified by OI >>while<< it's in the queue. Insane
-                    if content:
-                        # self.beeper.stop()
-
-                        # Experimental: The AI voice sounds better with replacements like these, but it should happen at the TTS layer
-                        # content = content.replace(". ", ". ... ").replace(", ", ", ... ").replace("!", "! ... ").replace("?", "? ... ")
-
-                        yield content
-
-                # Handle code blocks
-                elif chunk.get("type") == "code":
+                if chunk.get("type") == "code":
                     # if "start" in chunk:
                     # self.beeper.start()
 
