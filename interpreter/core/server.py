@@ -134,10 +134,10 @@ class AsyncInterpreter:
 
                 # self.add_to_output_queue_sync(chunk) # To send text, not just audio
 
-                content = chunk.get("content")
-                chunk_copy = chunk.copy()
-                self.add_to_output_queue_sync(chunk_copy)
-                yield chunk_copy
+                if "content" in chunk:
+                    content = chunk.get("content")
+                    self.add_to_output_queue_sync(chunk.copy())
+                    yield content
 
                 # Handle message blocks
                 if chunk.get("type") == "code":
