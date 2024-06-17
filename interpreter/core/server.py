@@ -286,8 +286,8 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
         outh = threading.Thread(target=lambda: asyncio.run(send_output()))
         inth.start()
         outh.start()
-        inth.join()
-        outh.join()
+        # inth.join()
+        # outh.join()
 
     config = Config(app, host="0.0.0.0", port=port) 
     interpreter.uvicorn_server = Server(config)
