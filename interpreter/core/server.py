@@ -234,60 +234,60 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
 
         return {"status": "success"}
     
-    # @app.websocket("/")
-    # async def websocket_endpoint(websocket: WebSocket):
-    #     input_queue = asyncio.Queue()
-
-    #     await websocket.accept()
-    #     try:
-    #         async def receive_input():
-    #             while True:
-    #                 user_message = await accumulate_user_message(websocket)
-    #                 await input_queue.put(user_message)
-    #         async def send_output():
-    #             while True:
-    #                 user_message = await input_queue.get()
-    #                 for chunk in interpreter.chat(user_message["content"], display=False, stream=True):
-    #                     await websocket.send_json(chunk)
-    #                     await asyncio.sleep(0)
-    #                 await websocket.send_json({"role": "server", "type": "completion", "content": "DONE"})
-
-    #         await asyncio.gather(receive_input(), send_output())
-    #     except Exception as e:
-    #         print(f"WebSocket connection closed with exception: {e}")
-    #         traceback.print_exc()
-    #     finally:
-    #         await websocket.close()
-
     @app.websocket("/")
     async def websocket_endpoint(websocket: WebSocket):
-        # input_queue = asyncio.Queue()
-        input_queue = queue.Queue()
+        input_queue = asyncio.Queue()
 
-
-        async def receive_input():
-            while True:
-                user_message = await accumulate_user_message(websocket)
-                print("sending user message!")
-                input_queue.put(user_message)
-
-        async def send_output():
-            while True:
-                user_message = input_queue.get()
-                print("received user message!")
-                for chunk in interpreter.chat(user_message["content"], display=False, stream=True):
-                    await websocket.send_json(chunk)
-                    await asyncio.sleep(0)
-                await websocket.send_json({"role": "server", "type": "completion", "content": "DONE"})
-        
         await websocket.accept()
-        # await asyncio.gather(receive_input(), send_output())
-        inth = threading.Thread(target=lambda: asyncio.run(receive_input()))
-        outh = threading.Thread(target=lambda: asyncio.run(send_output()))
-        inth.start()
-        outh.start()
-        # inth.join()
-        # outh.join()
+        try:
+            async def receive_input():
+                while True:
+                    user_message = await accumulate_user_message(websocket)
+                    await input_queue.put(user_message)
+            async def send_output():
+                while True:
+                    user_message = await input_queue.get()
+                    for chunk in interpreter.chat(user_message["content"], display=False, stream=True):
+                        await websocket.send_json(chunk)
+                        await asyncio.sleep(0)
+                    await websocket.send_json({"role": "server", "type": "completion", "content": "DONE"})
+
+            await asyncio.gather(receive_input(), send_output())
+        except Exception as e:
+            print(f"WebSocket connection closed with exception: {e}")
+            traceback.print_exc()
+        finally:
+            await websocket.close()
+
+    # @app.websocket("/")
+    # async def websocket_endpoint(websocket: WebSocket):
+    #     # input_queue = asyncio.Queue()
+    #     input_queue = queue.Queue()
+
+
+    #     async def receive_input():
+    #         while True:
+    #             user_message = await accumulate_user_message(websocket)
+    #             print("sending user message!")
+    #             input_queue.put(user_message)
+
+    #     async def send_output():
+    #         while True:
+    #             user_message = input_queue.get()
+    #             print("received user message!")
+    #             for chunk in interpreter.chat(user_message["content"], display=False, stream=True):
+    #                 await websocket.send_json(chunk)
+    #                 await asyncio.sleep(0)
+    #             await websocket.send_json({"role": "server", "type": "completion", "content": "DONE"})
+        
+    #     await websocket.accept()
+    #     # await asyncio.gather(receive_input(), send_output())
+    #     inth = threading.Thread(target=lambda: asyncio.run(receive_input()))
+    #     outh = threading.Thread(target=lambda: asyncio.run(send_output()))
+    #     inth.start()
+    #     outh.start()
+    #     # inth.join()
+    #     # outh.join()
 
     config = Config(app, host="0.0.0.0", port=port) 
     interpreter.uvicorn_server = Server(config)
