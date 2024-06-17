@@ -195,13 +195,17 @@ class AsyncInterpreter:
 
 
 async def accumulate_user_message(websocket: WebSocket):
+    print("waiting to receive...")
     ws_message = await websocket.receive_json()
+    print("receiving!!", ws_message)
     user_message_content = ""
 
     while "end" not in ws_message:
         if "content" in ws_message:
             user_message_content += ws_message["content"]
+        print('waiting to receive...')
         ws_message = await websocket.receive_json()
+        print("receiving!!", ws_message)
     
     return {"role": "user", "type": "message", "content": user_message_content}
 
@@ -264,11 +268,13 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
         async def receive_input():
             while True:
                 user_message = await accumulate_user_message(websocket)
+                print("sending user message!")
                 input_queue.put(user_message)
 
         async def send_output():
             while True:
                 user_message = input_queue.get()
+                print("received user message!")
                 for chunk in interpreter.chat(user_message["content"], display=False, stream=True):
                     await websocket.send_json(chunk)
                     await asyncio.sleep(0)
