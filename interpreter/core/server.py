@@ -231,40 +231,19 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
     @app.websocket("/")
     async def websocket_endpoint(websocket: WebSocket):
         input_queue = asyncio.Queue()
-        output_queue = asyncio.Queue()
 
         await websocket.accept()
         try:
             async def receive_input():
                 while True:
-                    # data = await websocket.receive()
-                    # print(data)
-                    # if isinstance(data, bytes):
-                    #     await async_interpreter.input(data)
-                    # elif "text" in data:
-                    #     await async_interpreter.input(data["text"])
-                    # elif data == {"type": "websocket.disconnect", "code": 1000}
-                    #     print("Websocket disconnected with code 1000.")
-                    #     break
                     user_message = await accumulate_user_message(websocket)
-                    print("incoming user_message: ", user_message)
                     await input_queue.put(user_message)
             async def send_output():
                 while True:
-                    # output = await async_interpreter.output()
-                    # if isinstance(output, bytes):
-                    #     # await websocket.send_bytes(output)
-                    #     # we dont send out bytes rn, no TTS
-                    #     pass
-                    # elif isinstance(output, dict):
-                    #     await websocket.send_text(json.dumps(output))
                     user_message = await input_queue.get()
-                    print("got input!", user_message)
                     for chunk in interpreter.chat(user_message["content"], display=False, stream=True):
-                        print("chunk:", chunk)
                         await websocket.send_json(chunk)
                         await asyncio.sleep(0)
-                    print("done with one loop thing!")
                     await websocket.send_json({"role": "server", "type": "completion", "content": "DONE"})
 
             await asyncio.gather(receive_input(), send_output())
