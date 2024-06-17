@@ -276,8 +276,8 @@ def server(interpreter, port=8000):  # Default port is 8000 if not specified
         
         await websocket.accept()
         # await asyncio.gather(receive_input(), send_output())
-        inth = threading.Thread(target=lambda: asyncio.run(receive_input))  # type: ignore
-        outh = threading.Thread(target=lambda: asyncio.run(send_output))  # type: ignore
+        inth = threading.Thread(target=lambda: asyncio.run(receive_input()))
+        outh = threading.Thread(target=lambda: asyncio.run(send_output()))
         inth.start()
         outh.start()
         inth.join()
