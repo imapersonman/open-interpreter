@@ -139,7 +139,6 @@ class AsyncInterpreter:
                     self.add_to_output_queue_sync(chunk.copy())
                     yield content
 
-                # Handle message blocks
                 if chunk.get("type") == "code":
                     # if "start" in chunk:
                     # self.beeper.start()
